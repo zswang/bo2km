@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var path = require('path');
+var bo2km = require('../');
+var optimist = require('optimist');
+
+var argv = optimist
+	.usage('$0 [name] [options]')
+	.alias('v', 'version')
+	.describe('v', 'Print version number and exit.')
+	.wrap(80)
+	.argv;
+
+if (argv.version) {
+	var json = require('./package.json');
+	console.log('version %s-%s', json.name, json.version);
+	return;
+}
+
+var json = bo2km(argv);
+if (json && json.data) {
+	var output = json.data.text + '.bower.km';
+	fs.writeFileSync(output, JSON.stringify(json));
+	console.log('%j bo2km output complete.', output);
+}
+else {
+	console.log('none.');
+}
