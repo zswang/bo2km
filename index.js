@@ -10,16 +10,18 @@ var semver = require('semver');
 module.exports = function(opts) {
   opts = opts || {};
   var modules = {};
+  var packageFiles = {};
 
   function loadModule(filename) {
     try {
       var json = JSON.parse(fs.readFileSync(filename));
     }
     catch (ex) {
-      console.log(ex);
+      console.log('loadModule(filename = %j) error: %j', ex, error);
       return;
     }
-    modules[json.name] = modules[json.name] || {
+    var moduleName = filename.replace(/^.*?([^\/]+)\/bower\.json$/, '$1');
+    modules[moduleName] = modules[json.name] = modules[json.name] || {
       name: json.name,
       $$versions: []
     };
@@ -45,15 +47,25 @@ module.exports = function(opts) {
 
   glob('**/bower.json', {
     sync: true
-  }).forEach(loadModule);
+  }).forEach(function(filename) {
+    var moduleName = filename.replace(/^.*?([^\/]+)\/bower\.json$/, '$1');
+    packageFiles[moduleName] = packageFiles[moduleName] || [];
+    packageFiles[moduleName].push(filename);
+  });
 
   var root = {};
 
   function parse(node, name, version, level) {
     // console.log('parse(name = %j, version = %j)', name, version);
+    if (packageFiles[name]) {
+      packageFiles[name].forEach(function(filename) {
+        loadModule(filename);
+      });
+      packageFiles[name] = null;
+    }
     var module = modules[name];
     if (!module) {
-      console.log('error');
+      console.log('parse(name = %j, version = %j) module not exits.', name, version);
       return;
     }
 
@@ -63,7 +75,7 @@ module.exports = function(opts) {
 
     var currVersion = module.versions[versions[0] || module.$$versions[0]];
     if (!currVersion) {
-      console.log('error');
+      console.log('parse(name = %j, version = %j) version not exits.', name, version);
       return;
     }
 

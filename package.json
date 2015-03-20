@@ -1,6 +1,6 @@
 {
   "name": "bo2km",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Analysis of Bower dependencies, and generate a file kityminder file",
   "main": "./index",
   "bin": {
